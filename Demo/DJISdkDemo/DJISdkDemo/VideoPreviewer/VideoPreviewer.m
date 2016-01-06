@@ -105,11 +105,11 @@
     {
         BEGIN_DISPATCH_QUEUE
         if(_glView == nil){
-            _glView = [[MovieGLView alloc] initWithFrame:CGRectMake(0.0f, 0.0f, view.frame.size.width, view.frame.size.height)];
+	    _glView = [[MovieGLView alloc] initWithFrame:CGRectMake(0.0f, 0.0f, 1280, 720)];
             _status.isGLViewInit = YES;
         }
         dispatch_async(dispatch_get_main_queue(), ^{
-            [_glView setFrame:CGRectMake(0.0f, 0.0f, view.frame.size.width, view.frame.size.height)];
+            [_glView setFrame:CGRectMake(0.0f, 0.0f, 1280, 720)];
             [view addSubview:_glView];
             [view sendSubviewToBack:_glView];
         });
