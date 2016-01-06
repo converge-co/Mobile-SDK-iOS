@@ -306,7 +306,7 @@
                 if (!_status.isPause && !_status.isBackground) {
                     //use hardware decode
                     [_videoExtractor parse:inputData length:inputDataSize callback:^(uint8_t *frame, int length, int frame_width, int frame_height) {
-                        NSLog(@"FrameSize{%d, %d}", frame_width, frame_height);
+//                      NSLog(@"FrameSize{%d, %d}", frame_width, frame_height);
                         BOOL sizeChanged = NO;
                         if (frame_width > 0 && frame_height > 0) {
                             if (_frameSize.width == 0 || _frameSize.height == 0) {
