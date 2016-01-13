@@ -126,4 +126,5 @@ typedef NS_ENUM(NSUInteger, VideoPreviewerEvent){
  */
 - (void) setDecoderDataSource:(int)type;
 
+
 @end
