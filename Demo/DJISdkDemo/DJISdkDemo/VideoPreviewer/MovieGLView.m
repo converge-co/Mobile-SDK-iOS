@@ -414,23 +414,23 @@ enum {
 - (void)layoutSubviews
 {
     return;
-    NSLog(@"gl layoutSubviews\n");
-    glBindRenderbuffer(GL_RENDERBUFFER, _renderbuffer);
-    [_context renderbufferStorage:GL_RENDERBUFFER fromDrawable:(CAEAGLLayer*)self.layer];
-	glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_WIDTH, &_backingWidth);
-    glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT, &_backingHeight);
-	
-    GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-	if (status != GL_FRAMEBUFFER_COMPLETE) {
-		
-      //  NSLog(@"failed to make complete framebuffer object %x", status);
-        
-	} else {
-        //NSLog(@"OK setup GL framebuffer %d:%d", _backingWidth, _backingHeight);
-    }
-    
-    [self updateVertices];
-    [self render: nil];
+//    NSLog(@"gl layoutSubviews\n");
+//    glBindRenderbuffer(GL_RENDERBUFFER, _renderbuffer);
+//    [_context renderbufferStorage:GL_RENDERBUFFER fromDrawable:(CAEAGLLayer*)self.layer];
+//	glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_WIDTH, &_backingWidth);
+//    glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT, &_backingHeight);
+//	
+//    GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+//	if (status != GL_FRAMEBUFFER_COMPLETE) {
+//		
+//      //  NSLog(@"failed to make complete framebuffer object %x", status);
+//        
+//	} else {
+//        //NSLog(@"OK setup GL framebuffer %d:%d", _backingWidth, _backingHeight);
+//    }
+//    
+//    [self updateVertices];
+//    [self render: nil];
 }
 
 - (void)setContentMode:(UIViewContentMode)contentMode
