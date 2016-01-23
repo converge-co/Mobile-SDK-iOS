@@ -51,6 +51,8 @@ typedef NS_ENUM(NSUInteger, VideoPreviewerEvent){
     int _decodeFrameIndex;
     int _renderFrameIndex;
     
+    UIView* _videoView;
+    
     dispatch_queue_t _dispatchQueue;
 }
 

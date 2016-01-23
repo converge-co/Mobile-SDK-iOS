@@ -7,6 +7,7 @@
 
 #import "VideoPreviewer.h"
 #import "DJIVTH264DecoderPublic.h"
+#import "Masonry.h"
 #define BEGIN_DISPATCH_QUEUE __weak VideoPreviewer* weakSelf = self; dispatch_async(_dispatchQueue, ^{ __strong VideoPreviewer* strongLocalSelf = weakSelf;
 #define END_DISPATCH_QUEUE   });
 
@@ -51,6 +52,8 @@
         self.hwDecoder = [DJIVTH264DecoderPublic createDecoderWithDataSource:DJIVTH264DecoderDataSourceNone];
         [self.hwDecoder setVTDecoderDelegate:self];
     }
+    
+    _videoView = [[UIView alloc] init];
     
     memset(&_status, 0, sizeof(VideoPreviewerStatus));
     _status.isInit = YES;
@@ -98,42 +101,54 @@
 
 -(BOOL)setView:(UIView *)view
 {
-    if (view == nil) {
-        [self unSetView];
-    }
-    else
-    {
-        BEGIN_DISPATCH_QUEUE
-        if(strongLocalSelf->_glView == nil){
-	    strongLocalSelf->_glView = [[MovieGLView alloc] initWithFrame:CGRectMake(0.0f, 0.0f, 1280, 720)];
-            strongLocalSelf->_status.isGLViewInit = YES;
+    BEGIN_DISPATCH_QUEUE
+    dispatch_sync(dispatch_get_main_queue(), ^{
+        if (view == nil) {
+                [strongLocalSelf->_videoView willMoveToSuperview:nil];
+                [strongLocalSelf->_videoView removeFromSuperview];
+                [strongLocalSelf->_videoView didMoveToSuperview];
         }
-        dispatch_async(dispatch_get_main_queue(), ^{
-            [strongLocalSelf->_glView setFrame:CGRectMake(0.0f, 0.0f, 1280, 720)];
-            [view addSubview:strongLocalSelf->_glView];
-            [view sendSubviewToBack:strongLocalSelf->_glView];
-        });
-        END_DISPATCH_QUEUE
-    }
+        else
+        {
+            if(strongLocalSelf->_glView == nil){
+                strongLocalSelf->_glView = [[MovieGLView alloc] initWithFrame:CGRectMake(0.0f, 0.0f, 1280, 720)];
+                
+                [strongLocalSelf->_glView willMoveToSuperview:strongLocalSelf->_videoView];
+                [strongLocalSelf->_videoView addSubview:strongLocalSelf->_glView];
+                [strongLocalSelf->_glView didMoveToSuperview];
+                
+                [strongLocalSelf->_videoView sendSubviewToBack:strongLocalSelf->_glView];
+                
+                strongLocalSelf->_status.isGLViewInit = YES;
+            }
+            
+            [strongLocalSelf->_videoView willMoveToSuperview:view];
+            [view addSubview:strongLocalSelf->_videoView];
+            [strongLocalSelf->_videoView didMoveToSuperview];
+            
+            [strongLocalSelf->_videoView remakeConstraints:^(MASConstraintMaker *make) {
+                make.edges.equalTo(view);
+            }];
+
+        }
+    });
+    END_DISPATCH_QUEUE
     return NO;
 }
 
 -(void)unSetView
 {
     BEGIN_DISPATCH_QUEUE
-    if(strongLocalSelf->_glView != nil)
-    {
-        if (strongLocalSelf->_glView.superview != nil) {
-            dispatch_async(dispatch_get_main_queue(), ^{
-                [strongLocalSelf->_glView removeFromSuperview];
-                strongLocalSelf->_glView = nil;
-            });
-        }
-        else
+    dispatch_sync(dispatch_get_main_queue(), ^{
+        if(strongLocalSelf->_videoView != nil)
         {
-            strongLocalSelf->_glView = nil;
+            if (strongLocalSelf->_videoView.superview != nil) {
+                [strongLocalSelf->_videoView willMoveToSuperview:nil];
+                [strongLocalSelf->_videoView removeFromSuperview];
+                [strongLocalSelf->_videoView didMoveToSuperview];
+            }
         }
-    }
+    });
     END_DISPATCH_QUEUE
 }
 
