@@ -90,32 +90,34 @@ typedef struct{
 //进队列(返回值为No时队列满,长度为0或buf为NULL也返回NO)
 - (bool)push:(uint8_t *)buf length:(int)len{
     pthread_mutex_lock(&_mutex);
-
+    
+    // Enqueue the data
+    bool retVal = [self push:buf length:len mutex:&_mutex cond:&_cond];
+    
     // Start hunting the length of a start sequence from the end of the reserve
     int startingIndex = (int)_reserveVideoData.length - 5;
     if (startingIndex < 0) {
         startingIndex = 0;
     }
     
-    // Enqueue the data
-    bool retVal = [self push:buf length:len mutex:&_mutex cond:&_cond];
-    
     // Update the reserve
     [_reserveVideoData appendBytes:buf length:len];
-    int start = -1;
-    // If the reserve has a start sequence and is a type 9 NAL (AUD), find the last start sequence and trim the front of the reserve.
+    
+    // If the reserve has a start sequence and is a type 9 NAL (AUD), find the last such start sequence
+    // and trim the front of the reserve.
     // If not, add the whole thing to the reserve because it's in the middle of an access unit.
+    int start = -1;
     for (int i = startingIndex; i < _reserveVideoData.length-4; i++) {
         if (((uint8_t*)_reserveVideoData.bytes)[i] == 0x00 &&
             ((uint8_t*)_reserveVideoData.bytes)[i+1] == 0x00 &&
             ((uint8_t*)_reserveVideoData.bytes)[i+2] == 0x00 &&
             ((uint8_t*)_reserveVideoData.bytes)[i+3] == 0x01 &&
             (((uint8_t*)_reserveVideoData.bytes)[i+4] & 0x1F) == 0x9) {
-            start = i; // This is the latest start sequence found
+            start = i; // This is the start of the last start sequence found so far
         }
     }
-    // If there is a start sequence, throw away the
-    if (start != -1) {
+    // If there is a start sequence greater than index 0, throw away the data before that start sequence
+    if (start > 0) {
         [_reserveVideoData replaceBytesInRange:NSMakeRange(0, start-1) withBytes:NULL length:0];
     }
 
