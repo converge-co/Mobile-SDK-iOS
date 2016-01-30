@@ -83,6 +83,7 @@ typedef struct{
     uint8_t* pBuffer = (uint8_t*)malloc(_reserveVideoData.length);
     memcpy(pBuffer, [_reserveVideoData bytes], _reserveVideoData.length);
     [self push:pBuffer length:(int)_reserveVideoData.length mutex:&_mutex cond:&_cond];
+//    DDLogInfo(@"Pushed %lu bytes from AUD reserve onto queue", (unsigned long)_reserveVideoData.length);
     
     pthread_mutex_unlock(&_mutex);
 }
@@ -119,6 +120,14 @@ typedef struct{
     // If there is a start sequence greater than index 0, throw away the data before that start sequence
     if (start > 0) {
         [_reserveVideoData replaceBytesInRange:NSMakeRange(0, start-1) withBytes:NULL length:0];
+//        DDLogInfo(@"Trimmed reserve new AUD at %d : %02X%02X%02X%02X%02X",
+//                  start,
+//                  ((uint8_t*)_reserveVideoData.bytes)[start],
+//                  ((uint8_t*)_reserveVideoData.bytes)[start+1],
+//                  ((uint8_t*)_reserveVideoData.bytes)[start+2],
+//                  ((uint8_t*)_reserveVideoData.bytes)[start+3],
+//                  ((uint8_t*)_reserveVideoData.bytes)[start+4]
+//        );
     }
 
     pthread_cond_signal(&_cond);
