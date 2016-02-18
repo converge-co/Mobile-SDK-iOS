@@ -365,8 +365,10 @@ enum {
 //    NSLog(@"获取到的帧高度为:%.0f 宽度为:%.0f 当前父视图高度为:%.0f 宽度为:%0.f",_height,_width,superSize.height,superSize.width);
     if(superSize.width*_height!=superSize.height*_width){
         if(superSize.width*_height < superSize.height*_width){
+            __weak MovieGLView* weakSelf = self;
             dispatch_async(dispatch_get_main_queue(), ^{
-                [self setFrame:CGRectMake(0, (superSize.height-superSize.width*_height/_width)*0.5, superSize.width, superSize.width*_height/_width)];
+                __strong MovieGLView* strongLocalSelf = weakSelf;
+                [self setFrame:CGRectMake(0, (superSize.height-superSize.width*strongLocalSelf->_height/strongLocalSelf->_width)*0.5, superSize.width, superSize.width*strongLocalSelf->_height/strongLocalSelf->_width)];
             });
         }
         else{

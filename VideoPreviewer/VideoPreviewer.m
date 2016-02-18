@@ -10,7 +10,7 @@
 #import "LB2AUDHackParser.h"
 #import <DJISDK/DJISDK.h>
 
-#define BEGIN_DISPATCH_QUEUE dispatch_async(_dispatchQueue, ^{
+#define BEGIN_DISPATCH_QUEUE __weak VideoPreviewer* weakSelf = self; dispatch_async(_dispatchQueue, ^{ __strong VideoPreviewer* strongLocalSelf = weakSelf;
 #define END_DISPATCH_QUEUE   });
 
 @interface VideoPreviewer ()<DJIVTH264DecoderOutput, LB2AUDHackParserDelegate>
@@ -215,16 +215,16 @@ static VideoPreviewer* previewer = nil;
     {
         BEGIN_DISPATCH_QUEUE
         dispatch_async(dispatch_get_main_queue(), ^{
-            if(_glView == nil){
-                _glView = [[MovieGLView alloc] initWithFrame:CGRectMake(0.0f, 0.0f, view.frame.size.width, view.frame.size.height)];
+            if(strongLocalSelf->_glView == nil){
+                strongLocalSelf->_glView = [[MovieGLView alloc] initWithFrame:CGRectMake(0.0f, 0.0f, view.frame.size.width, view.frame.size.height)];
             }
 
-            if(_glView.superview != view){
-                [view addSubview:_glView];
+            if(strongLocalSelf->_glView.superview != view){
+                [view addSubview:strongLocalSelf->_glView];
             }
-            [view sendSubviewToBack:_glView];
-            [_glView adjustSize]; 
-            _status.isGLViewInit = YES;
+            [view sendSubviewToBack:strongLocalSelf->_glView];
+            [strongLocalSelf->_glView adjustSize];
+            strongLocalSelf->_status.isGLViewInit = YES;
 
         });
         END_DISPATCH_QUEUE
@@ -236,10 +236,10 @@ static VideoPreviewer* previewer = nil;
 {
     BEGIN_DISPATCH_QUEUE
     dispatch_async(dispatch_get_main_queue(), ^{
-        if(_glView != nil && _glView.superview !=nil)
+        if(strongLocalSelf->_glView != nil && strongLocalSelf->_glView.superview !=nil)
         {
-            [_glView removeFromSuperview];
-            _status.isGLViewInit = NO;
+            [strongLocalSelf->_glView removeFromSuperview];
+            strongLocalSelf->_status.isGLViewInit = NO;
         }
     });
     END_DISPATCH_QUEUE
@@ -248,10 +248,10 @@ static VideoPreviewer* previewer = nil;
 - (BOOL)start
 {
     BEGIN_DISPATCH_QUEUE
-    if(_decodeThread == nil && !_status.isRunning)
+    if(strongLocalSelf->_decodeThread == nil && !strongLocalSelf->_status.isRunning)
     {
-        _decodeThread = [[NSThread alloc] initWithTarget:self selector:@selector(startRun) object:nil];
-        [_decodeThread start];
+        strongLocalSelf->_decodeThread = [[NSThread alloc] initWithTarget:self selector:@selector(startRun) object:nil];
+        [strongLocalSelf->_decodeThread start];
     }
     END_DISPATCH_QUEUE
     return YES;
@@ -260,7 +260,7 @@ static VideoPreviewer* previewer = nil;
 - (void)resume
 {
     BEGIN_DISPATCH_QUEUE
-    _status.isPause = NO;
+    strongLocalSelf->_status.isPause = NO;
     NSLog(@"Resume video decoder");
     END_DISPATCH_QUEUE
 }
@@ -268,7 +268,7 @@ static VideoPreviewer* previewer = nil;
 - (void)pause
 {
     BEGIN_DISPATCH_QUEUE
-    _status.isPause = YES;
+    strongLocalSelf->_status.isPause = YES;
     NSLog(@"Pause video decoder");
     END_DISPATCH_QUEUE
 }
@@ -276,34 +276,34 @@ static VideoPreviewer* previewer = nil;
 - (void)close
 {
     BEGIN_DISPATCH_QUEUE
-    [_dataQueue clear];
-    if(_decodeThread!=nil){
-        [_decodeThread cancel];
+    [strongLocalSelf->_dataQueue clear];
+    if(strongLocalSelf->_decodeThread!=nil){
+        [strongLocalSelf->_decodeThread cancel];
     }
-    _status.isRunning = NO;
+    strongLocalSelf->_status.isRunning = NO;
     END_DISPATCH_QUEUE
 }
 
 - (void)stop
 {
     BEGIN_DISPATCH_QUEUE
-    [_dataQueue clear];
-    if(_decodeThread!=nil){
-        [_decodeThread cancel];
+    [strongLocalSelf->_dataQueue clear];
+    if(strongLocalSelf->_decodeThread!=nil){
+        [strongLocalSelf->_decodeThread cancel];
     }
-    _status.isRunning = NO;
+    strongLocalSelf->_status.isRunning = NO;
     END_DISPATCH_QUEUE
 }
 
 - (void)enterBackground{
     BEGIN_DISPATCH_QUEUE
-    _status.isBackground = YES;
+    strongLocalSelf->_status.isBackground = YES;
     END_DISPATCH_QUEUE
 }
 
 - (void)enterForeground{
     BEGIN_DISPATCH_QUEUE
-    _status.isBackground = NO;
+    strongLocalSelf->_status.isBackground = NO;
     END_DISPATCH_QUEUE
 }
 
@@ -311,22 +311,22 @@ static VideoPreviewer* previewer = nil;
 {
     BEGIN_DISPATCH_QUEUE
     
-    if(_decodeThread && _status.isRunning)
+    if(strongLocalSelf->_decodeThread && strongLocalSelf->_status.isRunning)
     {
-        _status.isRunning = NO;
-        while (!_status.isFinish) {
+        strongLocalSelf->_status.isRunning = NO;
+        while (!strongLocalSelf->_status.isFinish) {
             usleep(1000);
         }
         
-        _decodeThread = nil;
-        [_videoExtractor clearBuffer];
-        [_dataQueue clear];
+        strongLocalSelf->_decodeThread = nil;
+        [strongLocalSelf->_videoExtractor clearBuffer];
+        [strongLocalSelf->_dataQueue clear];
         
-        _decodeThread = [[NSThread alloc] initWithTarget:self selector:@selector(startRun) object:nil];
-        [_decodeThread start];
+        strongLocalSelf->_decodeThread = [[NSThread alloc] initWithTarget:self selector:@selector(startRun) object:nil];
+        [strongLocalSelf->_decodeThread start];
         
-        if (self.hwDecoder) {
-            [self.hwDecoder resetLater];
+        if (strongLocalSelf.hwDecoder) {
+            [strongLocalSelf.hwDecoder resetLater];
         }
     }
     
@@ -361,6 +361,7 @@ static VideoPreviewer* previewer = nil;
 
 -(void)startRun
 {
+    __weak VideoPreviewer* weakSelf = self;
     for(int i = 0;i<RENDER_FRAME_NUMBER;i++)
     {
         _renderYUVFrame[i] = (VideoFrameYUV *)malloc(sizeof(VideoFrameYUV)) ;
@@ -414,18 +415,19 @@ static VideoPreviewer* previewer = nil;
                 if (!_status.isPause && !_status.isBackground) {
                     //use hardware decode
                     [_videoExtractor parse:inputData length:inputDataSize callback:^(uint8_t *frame, int length, int frame_width, int frame_height) {
+                        __strong VideoPreviewer* strongLocalSelf = weakSelf;
                         BOOL sizeChanged = NO;
                         if (frame_width > 0 && frame_height > 0) {
-                            if (_frameSize.width == 0 || _frameSize.height == 0) {
-                                _frameSize.width = frame_width;
-                                _frameSize.height = frame_height;
+                            if (strongLocalSelf->_frameSize.width == 0 || strongLocalSelf->_frameSize.height == 0) {
+                                strongLocalSelf->_frameSize.width = frame_width;
+                                strongLocalSelf->_frameSize.height = frame_height;
                             }
                             else
                             {
-                                if (_frameSize.width != frame_width || _frameSize.height != frame_height) {
+                                if (strongLocalSelf->_frameSize.width != frame_width || strongLocalSelf->_frameSize.height != frame_height) {
                                     sizeChanged = YES;
-                                    _frameSize.width = frame_width;
-                                    _frameSize.height = frame_height;
+                                    strongLocalSelf->_frameSize.width = frame_width;
+                                    strongLocalSelf->_frameSize.height = frame_height;
                                 }
                             }
                         }
@@ -436,7 +438,7 @@ static VideoPreviewer* previewer = nil;
                         {
                             DJIVTH264DecoderUserData data;
                             data.frame_size = length;
-                            data.frame_uuid = _decodeFrameIndex++;
+                            data.frame_uuid = strongLocalSelf->_decodeFrameIndex++;
                             BOOL ret = [self.hwDecoder decodeFrame:frame length:length userData:data];
                             if (ret != YES) {
                                 self.decoderErrorCount++;
@@ -460,22 +462,23 @@ static VideoPreviewer* previewer = nil;
                 else {
                     [_videoExtractor decode:inputData length:inputDataSize callback:^(BOOL hasFrame)
                      {
+                         __strong VideoPreviewer* strongLocalSelf = weakSelf;
                          if (hasFrame) {
                              self.canReset = YES;
-                             if (_decodeFrameIndex >= RENDER_FRAME_NUMBER) {
-                                 _decodeFrameIndex = 0;
+                             if (strongLocalSelf->_decodeFrameIndex >= RENDER_FRAME_NUMBER) {
+                                 strongLocalSelf->_decodeFrameIndex = 0;
                              }
-                             pthread_rwlock_wrlock(&(_renderYUVFrame[_decodeFrameIndex]->mutex));
-                             [_videoExtractor getYuvFrame:_renderYUVFrame[_decodeFrameIndex]];
-                             _renderYUVFrame[_decodeFrameIndex]->gray = 0;
-                             pthread_rwlock_unlock(&(_renderYUVFrame[_decodeFrameIndex]->mutex));
-                             _renderFrameIndex = _decodeFrameIndex;
-                             if(_status.isGLViewInit && !_status.isPause && !_status.isBackground)
+                             pthread_rwlock_wrlock(&(strongLocalSelf->_renderYUVFrame[strongLocalSelf->_decodeFrameIndex]->mutex));
+                             [strongLocalSelf->_videoExtractor getYuvFrame:strongLocalSelf->_renderYUVFrame[strongLocalSelf->_decodeFrameIndex]];
+                             strongLocalSelf->_renderYUVFrame[strongLocalSelf->_decodeFrameIndex]->gray = 0;
+                             pthread_rwlock_unlock(&(strongLocalSelf->_renderYUVFrame[strongLocalSelf->_decodeFrameIndex]->mutex));
+                             strongLocalSelf->_renderFrameIndex = strongLocalSelf->_decodeFrameIndex;
+                             if(strongLocalSelf->_status.isGLViewInit && !strongLocalSelf->_status.isPause && !strongLocalSelf->_status.isBackground)
                              {
-                                 [_glView render:_renderYUVFrame[_renderFrameIndex]];
+                                 [strongLocalSelf->_glView render:strongLocalSelf->_renderYUVFrame[strongLocalSelf->_renderFrameIndex]];
                              }
-                             if((++_decodeFrameIndex)>=RENDER_FRAME_NUMBER){
-                                 _decodeFrameIndex = 0;
+                             if((++strongLocalSelf->_decodeFrameIndex)>=RENDER_FRAME_NUMBER){
+                                 strongLocalSelf->_decodeFrameIndex = 0;
                              }
                          }
                          else
@@ -561,24 +564,24 @@ static VideoPreviewer* previewer = nil;
 }
 
 -(void) lb2AUDHackParser:(id)parser didParsedData:(void *)data size:(int)size{
+    __weak VideoPreviewer* weakSelf = self;
     [_videoExtractor decode:data length:size callback:^(BOOL hasFrame)
      {
+         __strong VideoPreviewer* strongLocalSelf = weakSelf;
          if (hasFrame) {
              self.canReset = YES;
-             if (_decodeFrameIndex >= RENDER_FRAME_NUMBER) {
-                 _decodeFrameIndex = 0;
+             if (strongLocalSelf->_decodeFrameIndex >= RENDER_FRAME_NUMBER) {
+                 strongLocalSelf->_decodeFrameIndex = 0;
              }
-             pthread_rwlock_wrlock(&(_renderYUVFrame[_decodeFrameIndex]->mutex));
-             [_videoExtractor getYuvFrame:_renderYUVFrame[_decodeFrameIndex]];
-             _renderYUVFrame[_decodeFrameIndex]->gray = 0;
-             pthread_rwlock_unlock(&(_renderYUVFrame[_decodeFrameIndex]->mutex));
-             _renderFrameIndex = _decodeFrameIndex;
-             if(_status.isGLViewInit && !_status.isPause && !_status.isBackground)
+             pthread_rwlock_wrlock(&(strongLocalSelf->_renderYUVFrame[strongLocalSelf->_decodeFrameIndex]->mutex));
+             [strongLocalSelf->_videoExtractor getYuvFrame:strongLocalSelf->_renderYUVFrame[strongLocalSelf->_decodeFrameIndex]];
+             strongLocalSelf->_renderFrameIndex = strongLocalSelf->_decodeFrameIndex;
+             if(strongLocalSelf->_status.isGLViewInit && !strongLocalSelf->_status.isPause && !strongLocalSelf->_status.isBackground)
              {
-                 [_glView render:_renderYUVFrame[_renderFrameIndex]];
+                 [strongLocalSelf->_glView render:strongLocalSelf->_renderYUVFrame[strongLocalSelf->_renderFrameIndex]];
              }
-             if((++_decodeFrameIndex)>=RENDER_FRAME_NUMBER){
-                 _decodeFrameIndex = 0;
+             if((++strongLocalSelf->_decodeFrameIndex)>=RENDER_FRAME_NUMBER){
+                 strongLocalSelf->_decodeFrameIndex = 0;
              }
          }
          else
