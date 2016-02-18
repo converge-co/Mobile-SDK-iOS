@@ -414,6 +414,7 @@ enum {
 - (void)layoutSubviews
 {
     return;
+    /**
     NSLog(@"gl layoutSubviews\n");
     glBindRenderbuffer(GL_RENDERBUFFER, _renderbuffer);
     [_context renderbufferStorage:GL_RENDERBUFFER fromDrawable:(CAEAGLLayer*)self.layer];
@@ -431,6 +432,7 @@ enum {
     
     [self updateVertices];
     [self render: nil];
+     **/
 }
 
 - (void)setContentMode:(UIViewContentMode)contentMode
