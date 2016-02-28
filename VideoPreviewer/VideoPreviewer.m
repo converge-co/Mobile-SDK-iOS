@@ -216,7 +216,7 @@ static VideoPreviewer* previewer = nil;
         BEGIN_DISPATCH_QUEUE
         dispatch_async(dispatch_get_main_queue(), ^{
             if(strongLocalSelf->_glView == nil){
-                strongLocalSelf->_glView = [[MovieGLView alloc] initWithFrame:CGRectMake(0.0f, 0.0f, view.frame.size.width, view.frame.size.height)];
+                strongLocalSelf->_glView = [[MovieGLView alloc] initWithFrame:CGRectMake(0.0f, 0.0f, 1280, 720)];
             }
 
             if(strongLocalSelf->_glView.superview != view){
