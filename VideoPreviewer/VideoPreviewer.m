@@ -10,7 +10,7 @@
 #import "LB2AUDHackParser.h"
 #import <DJISDK/DJISDK.h>
 
-#define BEGIN_DISPATCH_QUEUE __weak VideoPreviewer* weakSelf = self; dispatch_async(_dispatchQueue, ^{ __strong VideoPreviewer* strongLocalSelf = weakSelf;
+#define BEGIN_DISPATCH_QUEUE __weak VideoPreviewer* weakSelf = self; dispatch_async(_dispatchQueue, ^{ strongSelfReference;
 #define END_DISPATCH_QUEUE   });
 
 @interface VideoPreviewer ()<DJIVTH264DecoderOutput, LB2AUDHackParserDelegate>
@@ -415,7 +415,7 @@ static VideoPreviewer* previewer = nil;
                 if (!_status.isPause && !_status.isBackground) {
                     //use hardware decode
                     [_videoExtractor parse:inputData length:inputDataSize callback:^(uint8_t *frame, int length, int frame_width, int frame_height) {
-                        __strong VideoPreviewer* strongLocalSelf = weakSelf;
+                        strongSelfReference;
                         BOOL sizeChanged = NO;
                         if (frame_width > 0 && frame_height > 0) {
                             if (strongLocalSelf->_frameSize.width == 0 || strongLocalSelf->_frameSize.height == 0) {
@@ -462,7 +462,7 @@ static VideoPreviewer* previewer = nil;
                 else {
                     [_videoExtractor decode:inputData length:inputDataSize callback:^(BOOL hasFrame)
                      {
-                         __strong VideoPreviewer* strongLocalSelf = weakSelf;
+                         strongSelfReference;
                          if (hasFrame) {
                              self.canReset = YES;
                              if (strongLocalSelf->_decodeFrameIndex >= RENDER_FRAME_NUMBER) {
@@ -567,7 +567,7 @@ static VideoPreviewer* previewer = nil;
     __weak VideoPreviewer* weakSelf = self;
     [_videoExtractor decode:data length:size callback:^(BOOL hasFrame)
      {
-         __strong VideoPreviewer* strongLocalSelf = weakSelf;
+         strongSelfReference;
          if (hasFrame) {
              self.canReset = YES;
              if (strongLocalSelf->_decodeFrameIndex >= RENDER_FRAME_NUMBER) {

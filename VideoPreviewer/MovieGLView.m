@@ -367,7 +367,7 @@ enum {
         if(superSize.width*_height < superSize.height*_width){
             __weak MovieGLView* weakSelf = self;
             dispatch_async(dispatch_get_main_queue(), ^{
-                __strong MovieGLView* strongLocalSelf = weakSelf;
+                strongSelfReference;
                 [self setFrame:CGRectMake(0, (superSize.height-superSize.width*strongLocalSelf->_height/strongLocalSelf->_width)*0.5, superSize.width, superSize.width*strongLocalSelf->_height/strongLocalSelf->_width)];
             });
         }
